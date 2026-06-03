@@ -1,58 +1,41 @@
-"""
-Брифинг-бот медиастудии «Так и задумано»
-Версия: 1.0
-Требует: python-telegram-bot==20.7
-
-Настройка:
-  1. Вставь BOT_TOKEN — токен от @BotFather
-  2. Вставь ADMIN_CHAT_ID — твой Telegram ID (узнай у @userinfobot)
-  3. Запусти: python bot.py
-"""
 
 import os
 import logging
-from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
+from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import (
     Application, CommandHandler, MessageHandler,
     filters, ContextTypes, ConversationHandler
 )
-
-# ─── НАСТРОЙКИ ────────────────────────────────────────────────────────────────
-
-BOT_TOKEN   = os.getenv("BOT_TOKEN", "8906747788:AAFSm-TC3NrHeWDw9kntFYK7baPBAcstofM")
-ADMIN_CHAT_ID = int(os.getenv("ADMIN_ID", "7987727520"))
-# ─── ЛОГИ ─────────────────────────────────────────────────────────────────────
-
+ 
+BOT_TOKEN = "8906747788:AAFSm-TC3NrHeWDw9kntFYK7baPBAcstofM"
+ADMIN_CHAT_ID = 7987727520
+ 
 logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(message)s",
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
-
-# ─── СОСТОЯНИЯ ДИАЛОГА ────────────────────────────────────────────────────────
-
+ 
 (
     S_NAME, S_BUSINESS, S_PRODUCT, S_PAIN,
     S_AUDIENCE, S_SOCIALS, S_REELS,
     S_STYLE, S_TOV,
     S_GOAL, S_TIMELINE, S_BUDGET, S_CONTACT
 ) = range(13)
-
-# ─── КНОПКИ ───────────────────────────────────────────────────────────────────
-
+ 
 KB_SOCIALS = ReplyKeyboardMarkup([
     ["Instagram / Reels", "TikTok"],
     ["YouTube / Shorts", "Telegram"],
     ["ВКонтакте", "Везде понемногу"],
 ], resize_keyboard=True, one_time_keyboard=True)
-
+ 
 KB_REELS = ReplyKeyboardMarkup([
     ["✅ Да, активно снимаю"],
     ["🟡 Иногда, редко"],
     ["🚀 Нет, начинаю с нуля"],
     ["📦 Только чужой контент"],
 ], resize_keyboard=True, one_time_keyboard=True)
-
+ 
 KB_TOV = ReplyKeyboardMarkup([
     ["🤝 Дружеский и тёплый"],
     ["🎓 Экспертный и строгий"],
@@ -60,7 +43,7 @@ KB_TOV = ReplyKeyboardMarkup([
     ["💬 Доверительный, «свой»"],
     ["🚀 Вдохновляющий, мотивирующий"],
 ], resize_keyboard=True, one_time_keyboard=True)
-
+ 
 KB_GOAL = ReplyKeyboardMarkup([
     ["📣 Узнаваемость / охваты"],
     ["👥 Новые подписчики"],
@@ -68,14 +51,14 @@ KB_GOAL = ReplyKeyboardMarkup([
     ["💰 Продажи на конкретную сумму"],
     ["🌱 Запуск с нуля"],
 ], resize_keyboard=True, one_time_keyboard=True)
-
+ 
 KB_TIMELINE = ReplyKeyboardMarkup([
     ["🔴 Срочно — в течение 2 недель"],
     ["🟡 В этом месяце"],
     ["🟢 1–2 месяца"],
     ["🔵 Не горит, готовим основательно"],
 ], resize_keyboard=True, one_time_keyboard=True)
-
+ 
 KB_BUDGET = ReplyKeyboardMarkup([
     ["До 25 000 ₽"],
     ["25 000 – 50 000 ₽"],
@@ -83,9 +66,7 @@ KB_BUDGET = ReplyKeyboardMarkup([
     ["100 000 – 150 000 ₽"],
     ["150 000 ₽ и выше"],
 ], resize_keyboard=True, one_time_keyboard=True)
-
-# ─── ПАКЕТЫ ПО БЮДЖЕТУ ────────────────────────────────────────────────────────
-
+ 
 PACKAGES = {
     "До 25 000 ₽": (
         "«Стартовый» — от 12 000 ₽/мес",
@@ -130,36 +111,28 @@ PACKAGES = {
         "• Приоритетная поддержка"
     ),
 }
-
+ 
 DEFAULT_PACKAGE = (
     "«Запуск» — от 40 000 ₽/мес",
     "• Контент-стратегия под нишу\n• 12 Reels / мес\n• Сценарии, монтаж"
 )
-
-# ─── ХЕЛПЕРЫ ──────────────────────────────────────────────────────────────────
-
-def get_brief(context) -> dict:
+ 
+ 
+def get_brief(context):
     if "brief" not in context.user_data:
         context.user_data["brief"] = {}
     return context.user_data["brief"]
-
-def first_name(update: Update) -> str:
-    return update.effective_user.first_name or "друг"
-
-async def send(update: Update, text: str, keyboard=None):
-    """Отправляет сообщение с опциональной клавиатурой."""
+ 
+ 
+async def send(update, text, keyboard=None):
     kwargs = {"text": text, "parse_mode": "HTML"}
-    if keyboard:
-        kwargs["reply_markup"] = keyboard
-    else:
-        kwargs["reply_markup"] = ReplyKeyboardRemove()
+    kwargs["reply_markup"] = keyboard if keyboard else ReplyKeyboardRemove()
     await update.message.reply_text(**kwargs)
-
-# ─── КОМАНДЫ ──────────────────────────────────────────────────────────────────
-
+ 
+ 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data.clear()
-    name = first_name(update)
+    name = update.effective_user.first_name or "друг"
     await send(update,
         f"Привет, {name}! 👋\n\n"
         "Я — брифинг-бот медиастудии <b>«Так и задумано»</b>.\n\n"
@@ -170,90 +143,78 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         "<i>(Например: «Анна, у меня салон красоты в Уфе»)</i>"
     )
     return S_NAME
-
+ 
+ 
 async def cmd_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await send(update,
-        "Брифинг остановлен.\n\n"
-        "Если захотите продолжить — просто напишите /start 🙌"
-    )
+    await send(update, "Брифинг остановлен.\n\nЕсли захотите продолжить — просто напишите /start 🙌")
     return ConversationHandler.END
-
-# ─── ШАГИ БРИФИНГА ────────────────────────────────────────────────────────────
-
+ 
+ 
 async def step_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     brief = get_brief(context)
     brief["name"] = update.message.text
     first = update.message.text.split()[0]
-
     await send(update,
         f"Отлично, {first}! 🔥\n\n"
         "Расскажите в двух предложениях — <b>чем занимается ваш бизнес или проект?</b>"
     )
     return S_BUSINESS
-
+ 
+ 
 async def step_business(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    brief = get_brief(context)
-    brief["business"] = update.message.text
-
+    get_brief(context)["business"] = update.message.text
     await send(update,
         "Понял! Теперь про продукт.\n\n"
         "<b>Какую основную услугу или продукт вы продаёте?</b>\n"
         "И в чём ваша главная «фишка» — чем отличаетесь от конкурентов?"
     )
     return S_PRODUCT
-
+ 
+ 
 async def step_product(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    brief = get_brief(context)
-    brief["product"] = update.message.text
-
+    get_brief(context)["product"] = update.message.text
     await send(update,
         "Хороший продукт! 💡\n\n"
         "<b>Какие главные боли клиентов он закрывает?</b>\n"
         "Что меняется в жизни человека после покупки?"
     )
     return S_PAIN
-
+ 
+ 
 async def step_pain(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    brief = get_brief(context)
-    brief["pain"] = update.message.text
-
+    get_brief(context)["pain"] = update.message.text
     await send(update,
         "Принял! Ключевое для контента — знать боль аудитории.\n\n"
         "<b>Опишите вашего идеального клиента:</b>\n"
         "пол, возраст, интересы, уровень дохода."
     )
     return S_AUDIENCE
-
+ 
+ 
 async def step_audience(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    brief = get_brief(context)
-    brief["audience"] = update.message.text
-
+    get_brief(context)["audience"] = update.message.text
     await send(update,
         "Аудитория ясна 👥\n\n"
         "<b>Где ваша аудитория «обитает» онлайн прямо сейчас?</b>",
         KB_SOCIALS
     )
     return S_SOCIALS
-
+ 
+ 
 async def step_socials(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    brief = get_brief(context)
-    brief["socials"] = update.message.text
-
+    get_brief(context)["socials"] = update.message.text
     await send(update,
         f"{update.message.text} — отличная площадка! 🚀\n\n"
         "<b>Вы уже снимаете Reels или короткие видео?</b>",
         KB_REELS
     )
     return S_REELS
-
+ 
+ 
 async def step_reels(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    brief = get_brief(context)
-    brief["reels"] = update.message.text
-    has_reels = "активно" in update.message.text.lower()
-
-    comment = "Прекрасно, есть с чем работать!" if has_reels else \
-              "Будем строить системно — это даже интереснее!"
-
+    get_brief(context)["reels"] = update.message.text
+    has = "активно" in update.message.text.lower()
+    comment = "Прекрасно, есть с чем работать!" if has else "Будем строить системно — это даже интереснее!"
     await send(update,
         f"{comment}\n\n"
         "Переходим к визуальному стилю 🎨\n\n"
@@ -261,22 +222,20 @@ async def step_reels(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         "<i>Например: минималистичный, дерзкий, дорогой</i>"
     )
     return S_STYLE
-
+ 
+ 
 async def step_style(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    brief = get_brief(context)
-    brief["style"] = update.message.text
-
+    get_brief(context)["style"] = update.message.text
     await send(update,
         f"«{update.message.text}» — уже чувствую эстетику бренда! 🎨\n\n"
         "<b>Какой Tone of Voice у вашего бренда?</b>",
         KB_TOV
     )
     return S_TOV
-
+ 
+ 
 async def step_tov(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    brief = get_brief(context)
-    brief["tov"] = update.message.text
-
+    get_brief(context)["tov"] = update.message.text
     await send(update,
         f"{update.message.text} — это точно попадёт в вашу аудиторию!\n\n"
         "Почти финиш! 🚀\n\n"
@@ -284,34 +243,31 @@ async def step_tov(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         KB_GOAL
     )
     return S_GOAL
-
+ 
+ 
 async def step_goal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    brief = get_brief(context)
-    brief["goal"] = update.message.text
-
+    get_brief(context)["goal"] = update.message.text
     await send(update,
         f"{update.message.text} — конкретная цель, работаем!\n\n"
         "<b>Есть ли срочность? Когда нужно запустить первые результаты?</b>",
         KB_TIMELINE
     )
     return S_TIMELINE
-
+ 
+ 
 async def step_timeline(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    brief = get_brief(context)
-    brief["timeline"] = update.message.text
-
+    get_brief(context)["timeline"] = update.message.text
     await send(update,
-        f"Зафиксировал срок.\n\n"
+        "Зафиксировал срок.\n\n"
         "И самый важный вопрос 💰\n\n"
         "<b>Какой ориентировочный бюджет на контент и продвижение в месяц?</b>",
         KB_BUDGET
     )
     return S_BUDGET
-
+ 
+ 
 async def step_budget(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    brief = get_brief(context)
-    brief["budget"] = update.message.text
-
+    get_brief(context)["budget"] = update.message.text
     await send(update,
         "Отлично! Могу предложить конкретный пакет 🎯\n\n"
         "<b>Последний вопрос:</b>\n"
@@ -319,19 +275,16 @@ async def step_budget(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         "<i>(Имя и роль)</i>"
     )
     return S_CONTACT
-
+ 
+ 
 async def step_contact(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     brief = get_brief(context)
     brief["contact"] = update.message.text
-
-    # Определяем пакет
+ 
     budget = brief.get("budget", "")
     pkg_name, pkg_items = PACKAGES.get(budget, DEFAULT_PACKAGE)
-
-    # Имя клиента (первое слово из поля name)
-    client_name = brief.get("name", "").split()[0]
-
-    # ── Итоговое сообщение клиенту ──────────────────────────────────────────
+    client_name = brief.get("name", "друг").split()[0]
+ 
     summary = (
         f"🎉 <b>Брифинг завершён, {client_name}!</b>\n\n"
         f"Я зафиксировал всё главное о вашем проекте.\n\n"
@@ -355,11 +308,10 @@ async def step_contact(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         f"🌐 takizadumano.ru"
     )
     await send(update, summary)
-
-    # ── Уведомление менеджеру (тебе) ────────────────────────────────────────
+ 
     user = update.effective_user
     tg_link = f"@{user.username}" if user.username else f"tg://user?id={user.id}"
-
+ 
     admin_msg = (
         f"🔔 <b>НОВЫЙ БРИФИНГ!</b>\n\n"
         f"👤 Telegram: {tg_link} ({user.full_name})\n"
@@ -381,7 +333,7 @@ async def step_contact(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         f"📦 <b>Подобранный пакет:</b>\n{pkg_name}\n\n"
         f"{pkg_items}"
     )
-
+ 
     try:
         await context.bot.send_message(
             chat_id=ADMIN_CHAT_ID,
@@ -390,53 +342,45 @@ async def step_contact(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         )
     except Exception as e:
         logger.error(f"Не удалось отправить уведомление менеджеру: {e}")
-
+ 
     return ConversationHandler.END
-
-# ─── ОБРАБОТЧИК НЕПРЕДВИДЕННЫХ СООБЩЕНИЙ ──────────────────────────────────────
-
+ 
+ 
 async def fallback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await send(update,
-        "Напишите /start чтобы начать брифинг.\n"
-        "Или /cancel чтобы остановить текущий."
-    )
-
-# ─── ЗАПУСК ───────────────────────────────────────────────────────────────────
-
-def main() -> None:
-    if BOT_TOKEN == "ВСТАВЬ_ТОКЕН_СЮДА":
-        logger.error("❌ Не задан BOT_TOKEN! Добавь его в переменные окружения.")
-        return
-
+    await send(update, "Напишите /start чтобы начать брифинг.")
+ 
+ 
+def main():
     app = Application.builder().token(BOT_TOKEN).build()
-
-    # Conversation handler — главный диалог брифинга
+ 
     conv = ConversationHandler(
         entry_points=[CommandHandler("start", cmd_start)],
         states={
-            S_NAME:      [MessageHandler(filters.TEXT & ~filters.COMMAND, step_name)],
-            S_BUSINESS:  [MessageHandler(filters.TEXT & ~filters.COMMAND, step_business)],
-            S_PRODUCT:   [MessageHandler(filters.TEXT & ~filters.COMMAND, step_product)],
-            S_PAIN:      [MessageHandler(filters.TEXT & ~filters.COMMAND, step_pain)],
-            S_AUDIENCE:  [MessageHandler(filters.TEXT & ~filters.COMMAND, step_audience)],
-            S_SOCIALS:   [MessageHandler(filters.TEXT & ~filters.COMMAND, step_socials)],
-            S_REELS:     [MessageHandler(filters.TEXT & ~filters.COMMAND, step_reels)],
-            S_STYLE:     [MessageHandler(filters.TEXT & ~filters.COMMAND, step_style)],
-            S_TOV:       [MessageHandler(filters.TEXT & ~filters.COMMAND, step_tov)],
-            S_GOAL:      [MessageHandler(filters.TEXT & ~filters.COMMAND, step_goal)],
-            S_TIMELINE:  [MessageHandler(filters.TEXT & ~filters.COMMAND, step_timeline)],
-            S_BUDGET:    [MessageHandler(filters.TEXT & ~filters.COMMAND, step_budget)],
-            S_CONTACT:   [MessageHandler(filters.TEXT & ~filters.COMMAND, step_contact)],
+            S_NAME:     [MessageHandler(filters.TEXT & ~filters.COMMAND, step_name)],
+            S_BUSINESS: [MessageHandler(filters.TEXT & ~filters.COMMAND, step_business)],
+            S_PRODUCT:  [MessageHandler(filters.TEXT & ~filters.COMMAND, step_product)],
+            S_PAIN:     [MessageHandler(filters.TEXT & ~filters.COMMAND, step_pain)],
+            S_AUDIENCE: [MessageHandler(filters.TEXT & ~filters.COMMAND, step_audience)],
+            S_SOCIALS:  [MessageHandler(filters.TEXT & ~filters.COMMAND, step_socials)],
+            S_REELS:    [MessageHandler(filters.TEXT & ~filters.COMMAND, step_reels)],
+            S_STYLE:    [MessageHandler(filters.TEXT & ~filters.COMMAND, step_style)],
+            S_TOV:      [MessageHandler(filters.TEXT & ~filters.COMMAND, step_tov)],
+            S_GOAL:     [MessageHandler(filters.TEXT & ~filters.COMMAND, step_goal)],
+            S_TIMELINE: [MessageHandler(filters.TEXT & ~filters.COMMAND, step_timeline)],
+            S_BUDGET:   [MessageHandler(filters.TEXT & ~filters.COMMAND, step_budget)],
+            S_CONTACT:  [MessageHandler(filters.TEXT & ~filters.COMMAND, step_contact)],
         },
         fallbacks=[CommandHandler("cancel", cmd_cancel)],
         allow_reentry=True,
     )
-
+ 
     app.add_handler(conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, fallback))
-
-    logger.info("✅ Бот «Так и задумано» запущен!")
+ 
+    logger.info("Бот Так и задумано запущен!")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
-
+ 
+ 
 if __name__ == "__main__":
+    main()
     main()
