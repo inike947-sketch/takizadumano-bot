@@ -19,8 +19,8 @@ from telegram.ext import (
 
 # ─── НАСТРОЙКИ ────────────────────────────────────────────────────────────────
 
-BOT_TOKEN   = os.getenv("BOT_TOKEN", "ВСТАВЬ_ТОКЕН_СЮДА")
-ADMIN_CHAT_ID = int(os.getenv("ADMIN_ID", "ВСТАВЬ_СВОЙ_ID_СЮДА"))
+BOT_TOKEN   = os.getenv("BOT_TOKEN", "8906747788:AAFSm-TC3NrHeWDw9kntFYK7baPBAcstofM")
+ADMIN_CHAT_ID = int(os.getenv("ADMIN_ID", "7987727520"))
 
 # ─── ЛОГИ ─────────────────────────────────────────────────────────────────────
 
